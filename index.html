@@ -3,25 +3,40 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>PIN-Eingabe</title>
+  <title>Start</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
-      background-color: #e88;
-      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5b5b5;
+      font-family: 'Segoe UI', sans-serif;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
-      margin: 0;
-      color: white;
       text-align: center;
+      color: white;
     }
 
-    h1 {
+    #weil {
+      font-size: 32px;
+      line-height: 1.5;
+    }
+
+    #pinScreen, #profilScreen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #pinScreen h1,
+    #profilScreen h1 {
+      font-size: 20px;
       margin-bottom: 20px;
-      font-size: 22px;
     }
 
     input {
@@ -48,23 +63,73 @@
       margin-top: 10px;
       font-size: 14px;
     }
+
+    .profile-btn {
+      background-color: white;
+      color: #f5b5b5;
+      border: none;
+      border-radius: 12px;
+      padding: 15px 25px;
+      margin: 10px;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .symbol {
+      font-size: 22px;
+    }
   </style>
 </head>
 <body>
-  <h1>Seit wann sind wir zusammen<br>(daymonth)</h1>
-  <input type="password" id="pinInput" placeholder="z. B. 1504" maxlength="4">
-  <button onclick="checkPIN()">Weiter</button>
-  <div class="error" id="errorMsg"></div>
+  <div id="weil">
+    weil<br>ich<br>dich<br>liebe
+  </div>
+
+  <div id="pinScreen">
+    <h1>❤️ Seit wann sind wir zusammen? ❤️<br>(daymonth)</h1>
+    <input type="password" id="pinInput" placeholder="z. B. 1304" maxlength="4">
+    <button onclick="checkPIN()">Weiter</button>
+    <div class="error" id="errorMsg"></div>
+  </div>
+
+  <div id="profilScreen">
+    <h1>Wer bist du?</h1>
+    <button class="profile-btn" onclick="chooseProfile('Isabelle')">
+      <span class="symbol">👑</span> Isabelle
+    </button>
+    <button class="profile-btn" onclick="chooseProfile('Arian')">
+      <span class="symbol">🍓</span> Arian
+    </button>
+  </div>
 
   <script>
+    setTimeout(() => {
+      document.getElementById("weil").style.display = "none";
+      document.getElementById("pinScreen").style.display = "flex";
+    }, 2000);
+
     function checkPIN() {
       const pin = document.getElementById("pinInput").value;
       const error = document.getElementById("errorMsg");
       if (pin === "1807") {
-        window.location.href = "kategorien.html";
+        document.getElementById("pinScreen").style.display = "none";
+        document.getElementById("profilScreen").style.display = "flex";
       } else {
         error.textContent = "Falscher PIN 🧸";
       }
+    }
+
+    function chooseProfile(name) {
+      const profile = {
+        name: name,
+        color: name === "Isabelle" ? "#d4af37" : "#a264d6",
+        symbol: name === "Isabelle" ? "👑" : "🍓"
+      };
+      localStorage.setItem("profile", JSON.stringify(profile));
+      window.location.href = "kategorien.html";
     }
   </script>
 </body>
