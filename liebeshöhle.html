@@ -1,0 +1,273 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>liebeshöhle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      background-color: #e88;
+      font-family: sans-serif;
+      color: white;
+      padding: 20px;
+      position: relative;
+    }
+
+    .corner-btn {
+      position: absolute;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background-color: white;
+      color: #e88;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    .back { top: 20px; left: 20px; }
+    .plus { top: 20px; right: 20px; }
+    .archive { bottom: 20px; right: 20px; }
+    .stats { bottom: 20px; left: 20px; }
+
+    h1 {
+      text-align: center;
+      margin-top: 80px;
+    }
+
+    #formBox {
+      display: none;
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 15px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      resize: vertical;
+    }
+
+    .status-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+    }
+
+    .status-btn {
+      flex: 1;
+      margin: 0 5px;
+      padding: 10px;
+      font-size: 16px;
+      background: white;
+      color: #e88;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .entry {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.15);
+      padding: 10px;
+      border-radius: 15px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .icon {
+      background: white;
+      color: #e88;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .bubble {
+      background: #fff;
+      color: #000;
+      border-radius: 15px;
+      padding: 8px 12px;
+      flex-grow: 1;
+      position: relative;
+    }
+
+    .bubble small {
+      position: absolute;
+      bottom: 5px;
+      right: 8px;
+      font-size: 12px;
+    }
+
+    .modal {
+      display: none;
+      background: white;
+      color: #e88;
+      padding: 20px;
+      border-radius: 15px;
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      max-width: 400px;
+      z-index: 10;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 15px;
+    }
+
+    .modal-actions button {
+      border: none;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: #e88;
+      color: white;
+      cursor: pointer;
+    }
+
+    #overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 9;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="corner-btn back" onclick="goBack()">←</div>
+  <div class="corner-btn plus" onclick="toggleForm()">＋</div>
+    
+  <h1>❤️ liebeshöhle ❤️</h1>
+
+  <div id="formBox">
+    <textarea id="sorgeText" rows="3" placeholder="❤️"></textarea><button class="status-btn" onclick="saveSorge()">Speichern</button>
+  </div>
+
+  <div id="sorgenList"></div>
+
+  <div id="overlay" onclick="closeModal()"></div>
+  <div class="modal" id="sorgeModal">
+    <div id="modalContent"></div>
+    <div class="modal-actions">
+      <button onclick="editSorge()">Bearbeiten</button>
+      <button onclick="deleteSorge()">Löschen</button>
+          </div>
+  </div>
+
+<script>
+let activeStatus = "info";
+let currentIndex = null;
+const profile = JSON.parse(localStorage.getItem("activeProfile")) || { name: "?", symbol: "❓", color: "#eee" };
+
+function goBack() {
+  window.location.href = "kategorien.html";
+}
+
+function toggleForm() {
+  const box = document.getElementById("formBox");
+  box.style.display = box.style.display === "block" ? "none" : "block";
+}
+
+
+function saveSorge() {
+  const text = document.getElementById("sorgeText").value;
+  if (!text) return;
+  const sorge = {
+    author: profile.name,
+    symbol: profile.symbol,
+    color: profile.color,
+    status: activeStatus,
+    text: text,
+    done: false
+  };
+  const all = JSON.parse(localStorage.getItem("sorgen") || "[]");
+  all.push(sorge);
+  localStorage.setItem("sorgen", JSON.stringify(all));
+  document.getElementById("sorgeText").value = "";
+  toggleForm();
+  loadSorgen();
+}
+
+function loadSorgen() {
+  const all = JSON.parse(localStorage.getItem("sorgen") || "[]");
+  const list = document.getElementById("sorgenList");
+  list.innerHTML = "";
+  all.forEach((s, i) => {
+    if (!s.done) {
+      const el = document.createElement("div");
+      el.className = "entry";
+      el.innerHTML = `
+        <div class="icon">${s.symbol}</div>
+        <div class="bubble" style="background:${s.author === 'Isabelle' ? '#d4af37' : '#a264d6'}" onclick="showFull(${i})">
+          ${s.text.length > 30 ? s.text.slice(0, 30) + "..." : s.text}
+          
+        </div>`;
+      list.appendChild(el);
+    }
+  });
+}
+
+
+function showFull(index) {
+  const all = JSON.parse(localStorage.getItem("sorgen") || "[]");
+  const s = all[index];
+  if (s.author !== profile.name) return;
+  currentIndex = index;
+  document.getElementById("modalContent").innerText = s.text;
+  document.getElementById("overlay").style.display = "block";
+  document.getElementById("sorgeModal").style.display = "block";
+}
+
+function closeModal() {
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("sorgeModal").style.display = "none";
+}
+
+function editSorge() {
+  const all = JSON.parse(localStorage.getItem("sorgen") || "[]");
+  const s = all[currentIndex];
+  document.getElementById("sorgeText").value = s.text;
+  activeStatus = s.status;
+  all.splice(currentIndex, 1);
+  localStorage.setItem("sorgen", JSON.stringify(all));
+  closeModal();
+  toggleForm();
+  loadSorgen();
+}
+
+function deleteSorge() {
+  const all = JSON.parse(localStorage.getItem("sorgen") || "[]");
+  all.splice(currentIndex, 1);
+  localStorage.setItem("sorgen", JSON.stringify(all));
+  closeModal();
+  loadSorgen();
+}
+
+
+window.onload = loadSorgen;
+</script>
+</body>
+</html>

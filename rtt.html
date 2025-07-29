@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relationship Time Tracker</title>
+  <style>
+    @font-face {
+      font-family: 'Bubblegum';
+      src: url('BubblegumSans-Regular.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    body {
+      background-image: url('rtt_background.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      backdrop-filter: blur(2px);
+    
+      background-color: rgba(232, 136, 136, 0.6);
+      color: white;
+      font-family: 'Bubblegum', cursive;
+      text-align: center;
+      padding: 50px;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 30px;
+    }
+
+    .tracker {
+      font-size: 1.5em;
+      line-height: 2;
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+
+    .back-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      text-decoration: none;
+      background-color: white;
+      color: #e88;
+      font-size: 24px;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bubblegum', cursive;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transition: all 0.2s ease;
+    }
+
+    .back-button:hover {
+      transform: scale(1.1);
+      background-color: #fff5f7;
+    }
+  </style>
+</head>
+<body>
+  <div style="max-width: 500px; margin: 100px auto 0 auto; background: rgba(232, 136, 184, 0.75); padding: 40px 30px; border-radius: 20px; text-align: center; color: white;">
+
+
+  <a href="kategorien.html" class="back-button">←</a>
+
+  <h1>❤️ Wir sind zusammen seit ❤️</h1>
+  <div class="tracker" id="rtt">–</div>
+
+  <script>
+    function updateRTT() {
+      const startDate = new Date("2025-07-18T00:00:00");
+      const now = new Date();
+
+      const diffMs = now - startDate;
+      const totalHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const years = Math.floor(totalDays / 365.25);
+      const days = totalDays - Math.floor(years * 365.25);
+      
+
+      document.getElementById("rtt").innerText =
+        `${years} Jahr(e)\n${days} Tag(e)`;
+    }
+
+    updateRTT();
+    setInterval(updateRTT, 1000);
+  </script>
+  </div>
+</body>
+</html>

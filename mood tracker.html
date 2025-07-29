@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mood</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      background-color: #e88;
+      font-family: sans-serif;
+      color: white;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .corner-btn {
+      position: absolute;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background-color: white;
+      color: #e88;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    .back { top: 20px; left: 20px; }
+
+    h1 {
+      text-align: center;
+      margin-top: 80px;
+    }
+
+    .profile-box {
+      margin: 20px 0;
+      border-radius: 15px;
+      padding: 15px;
+      background-color: white;
+      color: black;
+    }
+
+    .profile-header {
+      font-size: 20px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .symbol {
+      font-size: 24px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
+
+    .save-btn {
+      background-color: #e88;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="corner-btn back" onclick="window.location.href='kategorien.html'">←</div>
+  <h1>🎭 mood tracker 🎭</h1>
+
+  <div id="moodContainer"></div>
+
+<script>
+const profiles = [
+  { name: "Isabelle", symbol: "👑", color: "#d4af37" },
+  { name: "Arian", symbol: "🍓", color: "#a264d6" }
+];
+
+function loadMoods() {
+  const moods = JSON.parse(localStorage.getItem("moods") || "{}");
+  const now = new Date();
+  const container = document.getElementById("moodContainer");
+  container.innerHTML = "";
+
+  profiles.forEach(profile => {
+    const mood = moods[profile.name] || {};
+    const box = document.createElement("div");
+    box.className = "profile-box";
+    box.style.border = "3px solid " + profile.color;
+
+    box.innerHTML = `
+      <div class="profile-header"><span class="symbol">${profile.symbol}</span> <strong>${profile.name}</strong></div>
+      
+      <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <label style="width: 70px;"><strong>mood:</strong></label>
+        <textarea id="mood-${profile.name}" placeholder="happy? sad? frustrated?" style="background-color:${profile.color}; color: white;">${mood.mood || ""}</textarea>
+      </div>
+      <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <label style="width: 70px;"><strong>energy:</strong></label>
+        <textarea id="energy-${profile.name}" placeholder="20%? 80%? 100%?" style="background-color:${profile.color}; color: white;">${mood.energy || ""}</textarea>
+      </div>
+      <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <label style="width: 70px;"><strong>needs:</strong></label>
+        <textarea id="needs-${profile.name}" placeholder="space? love? rest? safety? reassurance?" style="background-color:${profile.color}; color: white;">${mood.needs || ""}</textarea>
+      </div>
+
+      <button class="save-btn" onclick="saveMood('${profile.name}')">Speichern</button>
+     <button class="save-btn" style="margin-left: 10px;" onclick="resetMood('${profile.name}')">Reset</button>
+    `;
+    container.appendChild(box);
+  });
+}
+
+function resetMood(name) {
+  const moods = JSON.parse(localStorage.getItem("moods") || "{}");
+  delete moods[name];
+  localStorage.setItem("moods", JSON.stringify(moods));
+  loadMoods();
+}
+
+function saveMood(name) {
+  const moods = JSON.parse(localStorage.getItem("moods") || "{}");
+  moods[name] = {
+    mood: document.getElementById("mood-" + name).value,
+    energy: document.getElementById("energy-" + name).value,
+    needs: document.getElementById("needs-" + name).value,
+    timestamp: new Date().getTime()
+  };
+  localStorage.setItem("moods", JSON.stringify(moods));
+  alert("Eintrag gespeichert!");
+}
+
+function autoResetOldEntries() {
+  const moods = JSON.parse(localStorage.getItem("moods") || "{}");
+  const now = new Date().getTime();
+  let updated = false;
+  Object.keys(moods).forEach(name => {
+    const mood = moods[name];
+    if (now - mood.timestamp > 24 * 60 * 60 * 1000) {
+      delete moods[name];
+      updated = true;
+    }
+  });
+  if (updated) {
+    localStorage.setItem("moods", JSON.stringify(moods));
+  }
+}
+
+window.onload = () => {
+  autoResetOldEntries();
+  loadMoods();
+};
+</script>
+</body>
+</html>

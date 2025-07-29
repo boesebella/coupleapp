@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>PIN-Eingabe</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background-color: #e88;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      text-align: center;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background-color: white;
+      color: #e88;
+      border: none;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .error {
+      color: white;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Seit wann sind wir zusammen<br>(daymonth)</h1>
+  <input type="password" id="pinInput" placeholder="z. B. 1504" maxlength="4">
+  <button onclick="checkPIN()">Weiter</button>
+  <div class="error" id="errorMsg"></div>
+
+  <script>
+    function checkPIN() {
+      const pin = document.getElementById("pinInput").value;
+      const error = document.getElementById("errorMsg");
+      if (pin === "1807") {
+        window.location.href = "kategorien.html";
+      } else {
+        error.textContent = "Falscher PIN 🧸";
+      }
+    }
+  </script>
+</body>
+</html>

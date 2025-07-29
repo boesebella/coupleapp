@@ -1,0 +1,295 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>memories</title>
+  <style>
+    @font-face {
+      font-family: 'Bubblegum';
+      src: url('BubblegumSans-Regular.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    body {
+      background-color: #e88;
+      color: white;
+      font-family: 'Bubblegum', cursive;
+      padding: 20px;
+      position: relative;
+    }
+
+    .back-button, .plus-button {
+      position: absolute;
+      top: 20px;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      background-color: white;
+      color: #e88;
+      text-decoration: none;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transition: all 0.2s ease;
+      font-family: 'Bubblegum', cursive;
+    }
+
+    .back-button { left: 20px; }
+    .plus-button { right: 20px; }
+
+    .back-button:hover, .plus-button:hover {
+      transform: scale(1.1);
+      background-color: #fff5f7;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 80px;
+    }
+
+    #entryForm {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 20px;
+      margin: 20px 0;
+      display: none;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: none;
+      font-family: 'Bubblegum', cursive;
+      font-size: 16px;
+    }
+
+    input[type="file"] {
+      background: white;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: white;
+      color: #e88;
+      border: none;
+      border-radius: 15px;
+      font-family: 'Bubblegum', cursive;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .memory {
+      background-color: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 15px;
+      margin-bottom: 15px;
+      cursor: pointer;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #fff;
+      color: #e88;
+      padding: 20px;
+      border-radius: 20px;
+      width: 80%;
+      max-width: 400px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      z-index: 999;
+    }
+
+    .modal img {
+      max-width: 100%;
+      margin-top: 10px;
+      border-radius: 10px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .close-btn {
+      cursor: pointer;
+      font-size: 18px;
+      background: none;
+      border: none;
+      color: #e88;
+    }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #e88;
+    }
+
+    .menu {
+      display: none;
+      position: absolute;
+      right: 10px;
+      top: 35px;
+      background: #ffe6ee;
+      border-radius: 10px;
+      padding: 5px;
+      z-index: 1000;
+    }
+
+    .menu button {
+      background: none;
+      border: none;
+      color: #e88;
+      font-family: 'Bubblegum', cursive;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <a href="kategorien.html" class="back-button">←</a>
+  <div class="plus-button" onclick="toggleForm()">＋</div>
+
+  <h1>❤️ memories ❤️</h1>
+
+  <div id="entryForm">
+    <input type="text" id="title" placeholder="Titel eingeben" />
+    <input type="date" id="date" />
+    <input type="file" id="photo" accept="image/*" />
+    <textarea id="note" rows="4" placeholder="Notizen..."></textarea>
+    <button onclick="saveMemory()">Speichern</button>
+  </div>
+
+  <div id="memoriesList"></div>
+
+  <div id="modal" class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle"></h3>
+      <div>
+        <button class="menu-btn" onclick="toggleMenu()">⋮</button>
+        <div class="menu" id="menu">
+          <button onclick="editMemory()">Bearbeiten</button>
+          <button onclick="deleteMemory()">Löschen</button>
+        </div>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+    <small id="modalDate"></small>
+    <p id="modalNote"></p>
+    <img id="modalImage" />
+  </div>
+
+  <script>
+    let editIndex = null;
+
+    function toggleForm() {
+      const form = document.getElementById('entryForm');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function saveMemory() {
+      const title = document.getElementById('title').value;
+      const date = document.getElementById('date').value;
+      const note = document.getElementById('note').value;
+      const photoInput = document.getElementById('photo');
+      const memories = JSON.parse(localStorage.getItem("memories") || "[]");
+
+      function store(imgUrl = null) {
+        const memory = { title, date, note, img: imgUrl };
+        if (editIndex !== null) {
+          memories[editIndex] = memory;
+          editIndex = null;
+        } else {
+          memories.push(memory);
+        }
+        localStorage.setItem("memories", JSON.stringify(memories));
+        loadMemories();
+      }
+
+      if (photoInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => store(e.target.result);
+        reader.readAsDataURL(photoInput.files[0]);
+      } else {
+        store();
+      }
+
+      document.getElementById('entryForm').reset();
+      document.getElementById('entryForm').style.display = 'none';
+    }
+
+    function loadMemories() {
+      const list = document.getElementById('memoriesList');
+      list.innerHTML = "";
+      const memories = JSON.parse(localStorage.getItem("memories") || "[]");
+      memories.forEach((mem, index) => {
+        const div = document.createElement('div');
+        div.className = "memory";
+        div.innerHTML = `<strong>${mem.title}</strong><br><small>${mem.date}</small>`;
+        div.onclick = () => showMemory(index);
+        list.appendChild(div);
+      });
+    }
+
+    function showMemory(index) {
+      const memories = JSON.parse(localStorage.getItem("memories") || "[]");
+      const mem = memories[index];
+      document.getElementById('modalTitle').innerText = mem.title;
+      document.getElementById('modalDate').innerText = mem.date;
+      document.getElementById('modalNote').innerText = mem.note;
+      document.getElementById('modalImage').src = mem.img || "";
+      document.getElementById('modal').style.display = "block";
+      document.getElementById('menu').style.display = "none";
+      editIndex = index;
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = "none";
+    }
+
+    function toggleMenu() {
+      const menu = document.getElementById('menu');
+      menu.style.display = menu.style.display === "none" ? "block" : "none";
+    }
+
+    function deleteMemory() {
+      const memories = JSON.parse(localStorage.getItem("memories") || "[]");
+      if (editIndex !== null) {
+        memories.splice(editIndex, 1);
+        localStorage.setItem("memories", JSON.stringify(memories));
+        editIndex = null;
+        closeModal();
+        loadMemories();
+      }
+    }
+
+    function editMemory() {
+      const memories = JSON.parse(localStorage.getItem("memories") || "[]");
+      if (editIndex !== null) {
+        const mem = memories[editIndex];
+        document.getElementById('title').value = mem.title;
+        document.getElementById('date').value = mem.date;
+        document.getElementById('note').value = mem.note;
+        document.getElementById('entryForm').style.display = 'block';
+        closeModal();
+      }
+    }
+
+    window.onload = loadMemories;
+  </script>
+</body>
+</html>

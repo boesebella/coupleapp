@@ -1,0 +1,271 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Plans</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      background-color: #e88;
+      font-family: sans-serif;
+      color: white;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .corner-btn {
+      position: absolute;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background-color: white;
+      color: #e88;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    .back { top: 20px; left: 20px; }
+
+    h1 {
+      text-align: center;
+      margin-top: 80px;
+    }
+
+    .countdown-box {
+      background: rgba(255, 255, 255, 0.3);
+      text-align: center;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 30px auto 40px auto;
+      max-width: 300px;
+      font-size: 20px;
+    }
+
+    .columns {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .column {
+      flex: 1;
+      min-width: 200px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 15px;
+      position: relative;
+    }
+
+    .column h2 {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0;
+    }
+
+    .add-btn {
+      background-color: white;
+      color: #e88;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .entry {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: rgba(255,255,255,0.4);
+      border-radius: 10px;
+      color: black;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      color: black;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .modal-content input,
+    .modal-content textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .modal-content button {
+      background-color: #e88;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="corner-btn back" onclick="window.location.href='kategorien.html'">←</div>
+  
+  <h1 style="text-align:center;">🎯 plans 🎯</h1>
+
+  <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+    <div class="countdown-box" id="countdownBox">⏳ Countdown: wird berechnet...</div>
+  </div>
+
+  <div class="columns">
+
+    <div class="column">
+      <h2>ideas <button class="add-btn" onclick="openForm('ideas')">+</button></h2>
+      <div id="ideasList"></div>
+    </div>
+    <div class="column">
+      <h2>planned <button class="add-btn" onclick="openForm('planned')">+</button></h2>
+      <div id="plannedList"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-content" id="modalContent"></div>
+  </div>
+<script>
+function openForm(type, idx = null) {
+  const modal = document.getElementById("modal");
+  const content = document.getElementById("modalContent");
+  const isPlanned = type === "planned";
+  let title = "", desc = "", datetime = "";
+
+  if (idx !== null) {
+    const items = JSON.parse(localStorage.getItem(type) || "[]");
+    const item = items[idx];
+    title = item.title || "";
+    desc = item.desc || "";
+    datetime = item.datetime || "";
+  }
+
+  content.innerHTML =
+    `<input type="text" id="title" placeholder="Titel" value="${title}">` +
+    `<textarea id="desc" placeholder="Beschreibung">${desc}</textarea>` +
+    (isPlanned ? `<input type="datetime-local" id="datetime" value="${datetime}">` : "") +
+    `<button onclick="${idx === null ? `saveEntry('${type}')` : `saveEditedEntry('${type}',${idx})`}">Speichern</button>` +
+    `<button onclick="closeModal()">Abbrechen</button>`;
+
+  modal.style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+}
+
+document.getElementById("modal").addEventListener("click", function(e) {
+  if (e.target === this) closeModal();
+});
+
+function saveEntry(type) {
+  const title = document.getElementById("title").value;
+  const desc = document.getElementById("desc").value;
+  const datetime = document.getElementById("datetime") ? document.getElementById("datetime").value : null;
+  if (!title) return;
+  const entry = { title, desc, datetime };
+  const items = JSON.parse(localStorage.getItem(type) || "[]");
+  items.push(entry);
+  localStorage.setItem(type, JSON.stringify(items));
+  closeModal();
+  loadEntries();
+  updateCountdown();
+}
+
+function saveEditedEntry(type, idx) {
+  const title = document.getElementById("title").value;
+  const desc = document.getElementById("desc").value;
+  const datetime = document.getElementById("datetime") ? document.getElementById("datetime").value : null;
+  if (!title) return;
+  const items = JSON.parse(localStorage.getItem(type) || "[]");
+  items[idx] = { title, desc, datetime };
+  localStorage.setItem(type, JSON.stringify(items));
+  closeModal();
+  loadEntries();
+  updateCountdown();
+}
+
+function deleteEntry(type, idx) {
+  const items = JSON.parse(localStorage.getItem(type) || "[]");
+  items.splice(idx, 1);
+  localStorage.setItem(type, JSON.stringify(items));
+  loadEntries();
+  updateCountdown();
+}
+
+function loadEntries() {
+  ["ideas", "planned"].forEach(type => {
+    const container = document.getElementById(type + "List");
+    container.innerHTML = "";
+    const items = JSON.parse(localStorage.getItem(type) || "[]");
+    items.forEach((item, idx) => {
+      const div = document.createElement("div");
+      div.className = "entry";
+      div.innerHTML =
+        `<strong>${item.title}</strong><br>${item.desc}` +
+        (item.datetime ? `<br><em>${new Date(item.datetime).toLocaleString()}</em>` : "") +
+        `<br>
+        <button onclick="openForm('${type}',${idx})">Bearbeiten</button>
+        <button onclick="deleteEntry('${type}',${idx})">Löschen</button>`;
+      container.appendChild(div);
+    });
+  });
+}
+
+function updateCountdown() {
+  const planned = JSON.parse(localStorage.getItem("planned") || "[]");
+  if (!planned.length) {
+    document.getElementById("countdownBox").innerText = "⏳ Countdown";
+    return;
+  }
+  const upcoming = planned
+    .filter(p => p.datetime)
+    .map(p => ({ ...p, time: new Date(p.datetime).getTime() }))
+    .filter(p => p.time > Date.now())
+    .sort((a, b) => a.time - b.time)[0];
+  if (!upcoming) {
+    document.getElementById("countdownBox").innerText = "⏳ Keine kommenden Events.";
+    return;
+  }
+  const now = Date.now();
+  const diff = upcoming.time - now;
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const mins = Math.floor((diff / (1000 * 60)) % 60);
+  document.getElementById("countdownBox").innerText =
+    `⏳  („${upcoming.title}“) in ${days} Tag(en), ${hours} Std., ${mins} Min.`;
+}
+
+window.onload = () => {
+  loadEntries();
+  updateCountdown();
+};
+</script>
+</body>
+</html>
